@@ -1,10 +1,22 @@
 package com.qiwenshare.file.service;
 
-import cn.hutool.core.bean.BeanUtil;
-import com.alibaba.fastjson2.JSON;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qiwenshare.common.exception.QiwenException;
 import com.qiwenshare.common.operation.FileOperation;
@@ -17,6 +29,7 @@ import com.qiwenshare.file.domain.FileBean;
 import com.qiwenshare.file.domain.Image;
 import com.qiwenshare.file.domain.Music;
 import com.qiwenshare.file.domain.UserFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.mapper.FileMapper;
 import com.qiwenshare.file.mapper.ImageMapper;
 import com.qiwenshare.file.mapper.MusicMapper;
@@ -27,20 +40,9 @@ import com.qiwenshare.ufop.factory.UFOPFactory;
 import com.qiwenshare.ufop.operation.download.Downloader;
 import com.qiwenshare.ufop.operation.download.domain.DownloadFile;
 import com.qiwenshare.ufop.util.UFOPUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import cn.hutool.core.bean.BeanUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -103,7 +105,7 @@ public class FileService extends ServiceImpl<FileMapper, FileBean> implements IF
             fileEntryNameList = FileOperation.unzip(destFile, unzipUrl);
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("解压失败" + e);
+            CommonLogger.error("解压失败" + e);
             throw new QiwenException(500001, "解压异常：" + e.getMessage());
         }
 

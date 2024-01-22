@@ -1,8 +1,21 @@
 package com.qiwenshare.file.controller;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -18,21 +31,26 @@ import com.qiwenshare.file.component.FileDealComp;
 import com.qiwenshare.file.domain.Share;
 import com.qiwenshare.file.domain.ShareFile;
 import com.qiwenshare.file.domain.UserFile;
-import com.qiwenshare.file.dto.sharefile.*;
+import com.qiwenshare.file.dto.sharefile.CheckEndTimeDTO;
+import com.qiwenshare.file.dto.sharefile.CheckExtractionCodeDTO;
+import com.qiwenshare.file.dto.sharefile.SaveShareFileDTO;
+import com.qiwenshare.file.dto.sharefile.ShareFileDTO;
+import com.qiwenshare.file.dto.sharefile.ShareFileListDTO;
+import com.qiwenshare.file.dto.sharefile.ShareListDTO;
+import com.qiwenshare.file.dto.sharefile.ShareTypeDTO;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.vo.share.ShareFileListVO;
 import com.qiwenshare.file.vo.share.ShareFileVO;
 import com.qiwenshare.file.vo.share.ShareListVO;
 import com.qiwenshare.file.vo.share.ShareTypeVO;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-import java.text.ParseException;
-import java.util.*;
 
 @Tag(name = "share", description = "该接口为文件分享接口")
 @RestController
@@ -147,7 +165,7 @@ public class ShareController {
                     userFile1.setUserId(userId);
                     userFile1.setFilePath(userFile1.getFilePath().replaceFirst(QiwenFile.formatPath(filePath + "/" + fileName), QiwenFile.formatPath(savefilePath + "/" + savefileName)));
                     saveUserFileList.add(userFile1);
-                    log.info("当前文件：" + JSON.toJSONString(userFile1));
+                    CommonLogger.info("当前文件：" + JSON.toJSONString(userFile1));
                 }
             }
             userFile2.setUserFileId(IdUtil.getSnowflakeNextIdStr());
@@ -157,7 +175,7 @@ public class ShareController {
             saveUserFileList.add(userFile2);
 
         }
-        log.info("----------" + JSON.toJSONString(saveUserFileList));
+        CommonLogger.info("----------" + JSON.toJSONString(saveUserFileList));
         userFileService.saveBatch(saveUserFileList);
 
         return RestResult.success();
@@ -231,7 +249,7 @@ public class ShareController {
         try {
             endTimeDate = DateUtil.getDateByFormatString(endTime, "yyyy-MM-dd HH:mm:ss");
         } catch (ParseException e) {
-            log.error("日期解析失败：{}" , e);
+            CommonLogger.error("日期解析失败：{}" , e);
         }
         if (new Date().after(endTimeDate))  {
             return RestResult.fail().message("分享已过期");

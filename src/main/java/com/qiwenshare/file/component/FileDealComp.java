@@ -14,6 +14,7 @@ import com.qiwenshare.file.api.IUserService;
 import com.qiwenshare.file.config.es.FileSearch;
 import com.qiwenshare.file.domain.*;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.mapper.FileMapper;
 import com.qiwenshare.file.mapper.MusicMapper;
 import com.qiwenshare.file.mapper.UserFileMapper;
@@ -353,7 +354,7 @@ public class FileDealComp {
                 log.debug("文件所属用户id：" + userFile.getUserId());
                 log.debug("登录用户id:" + userId);
                 if (!userFile.getUserId().equals(userId)) {
-                    log.info("用户id不一致，权限校验失败");
+                    CommonLogger.info("用户id不一致，权限校验失败");
                     return false;
                 }
             } else {
@@ -362,7 +363,7 @@ public class FileDealComp {
                 List<Share> shareList = shareService.listByMap(param);
                 //判断批次号
                 if (shareList.size() <= 0) {
-                    log.info("分享批次号不存在，权限校验失败");
+                    CommonLogger.info("分享批次号不存在，权限校验失败");
                     return false;
                 }
                 Integer shareType = shareList.get(0).getShareType();
@@ -376,7 +377,7 @@ public class FileDealComp {
                 param.put("userFileId", userFileId);
                 List<ShareFile> shareFileList = shareFileService.listByMap(param);
                 if (shareFileList.size() <= 0) {
-                    log.info("用户id和分享批次号不匹配，权限校验失败");
+                    CommonLogger.info("用户id和分享批次号不匹配，权限校验失败");
                     return false;
                 }
 
@@ -538,13 +539,13 @@ public class FileDealComp {
                         String lyc = MusicUtils.getLyc(music.getArtist(), music.getTitle(), music.getAlbum());
                         music.setLyrics(lyc);
                     } catch (Exception e) {
-                        log.info(e.getMessage());
+                        CommonLogger.error(e.getMessage());
                     }
                 }
                 musicMapper.insert(music);
             }
         } catch (Exception e) {
-            log.error("解析音乐信息失败！", e);
+            CommonLogger.error("解析音乐信息失败！", e);
         } finally {
             IOUtils.closeQuietly(inputStream);
             IOUtils.closeQuietly(fileOutputStream);

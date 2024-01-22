@@ -1,8 +1,18 @@
 package com.qiwenshare.file.service;
 
-import cn.hutool.core.net.URLDecoder;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -17,21 +27,15 @@ import com.qiwenshare.file.component.FileDealComp;
 import com.qiwenshare.file.domain.RecoveryFile;
 import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.mapper.RecoveryFileMapper;
 import com.qiwenshare.file.mapper.UserFileMapper;
 import com.qiwenshare.file.vo.file.FileListVO;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
+import cn.hutool.core.net.URLDecoder;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -99,7 +103,7 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
         try {
             userFileMapper.updateById(userFile);
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            CommonLogger.warn(e.getMessage());
         }
         //移动子目录
         oldfilePath = new QiwenFile(oldfilePath, fileName, true).getPath();
@@ -117,7 +121,7 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
                 try {
                     userFileMapper.updateById(newUserFile);
                 } catch (Exception e) {
-                    log.warn(e.getMessage());
+                    CommonLogger.warn(e.getMessage());
                 }
             }
         }
@@ -141,7 +145,7 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
         try {
             userFileMapper.insert(userFile);
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            CommonLogger.warn(e.getMessage());
         }
 
         oldfilePath = new QiwenFile(oldfilePath, fileName, true).getPath();
@@ -162,7 +166,7 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
                 try {
                     userFileMapper.insert(newUserFile);
                 } catch (Exception e) {
-                    log.warn(e.getMessage());
+                    CommonLogger.warn(e.getMessage());
                 }
             }
         }

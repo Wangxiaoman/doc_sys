@@ -4,7 +4,7 @@ import com.qiwenshare.common.exception.NotLoginException;
 import com.qiwenshare.common.exception.QiwenException;
 import com.qiwenshare.common.result.RestResult;
 import com.qiwenshare.common.result.ResultCodeEnum;
-
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.ufop.exception.operation.UploadException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,7 +31,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(Exception e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
-
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.fail();    // 通用异常结果
     }
 
@@ -42,6 +42,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(NullPointerException e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.setResult(ResultCodeEnum.NULL_POINT);
     }
     /**-------- 下标越界处理方法 --------**/
@@ -51,6 +52,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(IndexOutOfBoundsException e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.setResult(ResultCodeEnum.INDEX_OUT_OF_BOUNDS);
     }
 
@@ -60,6 +62,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(UploadException e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.setResult(ResultCodeEnum.REQUEST_TIMEOUT);
     }
 
@@ -69,6 +72,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(NotLoginException e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.setResult(ResultCodeEnum.NOT_LOGIN_ERROR);
     }
 
@@ -78,6 +82,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(UsernameNotFoundException e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.setResult(ResultCodeEnum.NOT_LOGIN_ERROR);
     }
 
@@ -89,6 +94,7 @@ public class GlobalExceptionHandlerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public RestResult handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         log.error(e.getMessage(), e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.setResult(ResultCodeEnum.PARAM_ERROR).message(e.getBindingResult().getFieldError().getDefaultMessage());
     }
 
@@ -100,6 +106,7 @@ public class GlobalExceptionHandlerAdvice {
     public RestResult error(QiwenException e) {
         e.printStackTrace();
         log.error("全局异常捕获：" + e);
+        CommonLogger.error("全局异常捕获：" + e);
         return RestResult.fail().message(e.getMessage()).code(e.getCode());
     }
 }

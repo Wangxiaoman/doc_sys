@@ -1,23 +1,63 @@
 package com.qiwenshare.file.service;
 
-import cn.hutool.core.util.StrUtil;
+import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.qiwenshare.common.util.DateUtil;
 import com.qiwenshare.common.util.MimeUtils;
-import com.qiwenshare.common.util.security.JwtUser;
 import com.qiwenshare.common.util.security.SessionUtil;
 import com.qiwenshare.file.api.IFiletransferService;
 import com.qiwenshare.file.component.FileDealComp;
-import com.qiwenshare.file.domain.*;
+import com.qiwenshare.file.domain.FileBean;
+import com.qiwenshare.file.domain.Image;
+import com.qiwenshare.file.domain.PictureFile;
+import com.qiwenshare.file.domain.UploadTask;
+import com.qiwenshare.file.domain.UploadTaskDetail;
+import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.dto.file.DownloadFileDTO;
 import com.qiwenshare.file.dto.file.PreviewDTO;
 import com.qiwenshare.file.dto.file.UploadFileDTO;
 import com.qiwenshare.file.io.QiwenFile;
-import com.qiwenshare.file.mapper.*;
-import com.qiwenshare.file.util.QiwenFileUtil;
+import com.qiwenshare.file.log.CommonLogger;
+import com.qiwenshare.file.mapper.FileMapper;
+import com.qiwenshare.file.mapper.ImageMapper;
+import com.qiwenshare.file.mapper.PictureFileMapper;
+import com.qiwenshare.file.mapper.UploadTaskDetailMapper;
+import com.qiwenshare.file.mapper.UploadTaskMapper;
+import com.qiwenshare.file.mapper.UserFileMapper;
 import com.qiwenshare.file.vo.file.UploadFileVo;
 import com.qiwenshare.ufop.constant.StorageTypeEnum;
 import com.qiwenshare.ufop.constant.UploadFileStatusEnum;
@@ -34,30 +74,9 @@ import com.qiwenshare.ufop.operation.upload.Uploader;
 import com.qiwenshare.ufop.operation.upload.domain.UploadFile;
 import com.qiwenshare.ufop.operation.upload.domain.UploadFileResult;
 import com.qiwenshare.ufop.util.UFOPUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import cn.hutool.core.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -109,7 +128,7 @@ public class FiletransferService implements IFiletransferService {
                 userFileMapper.insert(userFile);
                 fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
             } catch (Exception e) {
-                log.warn("极速上传文件冲突重命名处理: {}", JSON.toJSONString(userFile));
+                CommonLogger.warn("极速上传文件冲突重命名处理: {}", JSON.toJSONString(userFile));
 
             }
 
@@ -163,14 +182,14 @@ public class FiletransferService implements IFiletransferService {
 
         Uploader uploader = ufopFactory.getUploader();
         if (uploader == null) {
-            log.error("上传失败，请检查storageType是否配置正确");
+            CommonLogger.error("上传失败，请检查storageType是否配置正确");
             throw new UploadException("上传失败");
         }
         List<UploadFileResult> uploadFileResultList;
         try {
             uploadFileResultList = uploader.upload(request, uploadFile);
         } catch (Exception e) {
-            log.error("上传失败，请检查UFOP连接配置是否正确");
+            CommonLogger.error("上传失败，请检查UFOP连接配置是否正确");
             throw new UploadException("上传失败", e);
         }
         for (int i = 0; i < uploadFileResultList.size(); i++){
@@ -189,7 +208,7 @@ public class FiletransferService implements IFiletransferService {
                 try {
                     fileMapper.insert(fileBean);
                 } catch (Exception e) {
-                    log.warn("identifier Duplicate: {}", fileBean.getIdentifier());
+                    CommonLogger.warn("identifier Duplicate: {}", fileBean.getIdentifier());
                     fileBean = fileMapper.selectOne(new QueryWrapper<FileBean>().lambda().eq(FileBean::getIdentifier, fileBean.getIdentifier()));
                 }
 
@@ -209,7 +228,7 @@ public class FiletransferService implements IFiletransferService {
                             .eq(UserFile::getIsDir, userFile.getIsDir()));
                     FileBean file1 = fileMapper.selectById(userFile1.getFileId());
                     if (!StringUtils.equals(fileBean.getIdentifier(), file1.getIdentifier())) {
-                        log.warn("文件冲突重命名处理: {}", JSON.toJSONString(userFile1));
+                        CommonLogger.warn("文件冲突重命名处理: {}", JSON.toJSONString(userFile1));
                         String fileName = fileDealComp.getRepeatFileName(userFile, userFile.getFilePath());
                         userFile.setFileName(fileName);
                         userFileMapper.insert(userFile);
@@ -246,7 +265,7 @@ public class FiletransferService implements IFiletransferService {
                         imageMapper.insert(image);
                     }
                 } catch (Exception e) {
-                    log.error("生成图片缩略图失败！", e);
+                    CommonLogger.error("生成图片缩略图失败！", e);
                 }
 
                 fileDealComp.parseMusicFile(uploadFileResult.getExtendName(), uploadFileResult.getStorageType().getCode(), uploadFileResult.getFileUrl(), fileBean.getFileId());
@@ -298,7 +317,7 @@ public class FiletransferService implements IFiletransferService {
             FileBean fileBean = fileMapper.selectById(userFile.getFileId());
             Downloader downloader = ufopFactory.getDownloader(fileBean.getStorageType());
             if (downloader == null) {
-                log.error("下载失败，文件存储类型不支持下载，storageType:{}", fileBean.getStorageType());
+                CommonLogger.error("下载失败，文件存储类型不支持下载，storageType:{}", fileBean.getStorageType());
                 throw new DownloadException("下载失败");
             }
             DownloadFile downloadFile = new DownloadFile();
@@ -342,7 +361,7 @@ public class FiletransferService implements IFiletransferService {
                     FileBean fileBean = fileMapper.selectById(userFile1.getFileId());
                     Downloader downloader = ufopFactory.getDownloader(fileBean.getStorageType());
                     if (downloader == null) {
-                        log.error("下载失败，文件存储类型不支持下载，storageType:{}", fileBean.getStorageType());
+                        CommonLogger.error("下载失败，文件存储类型不支持下载，storageType:{}", fileBean.getStorageType());
                         throw new UploadException("下载失败");
                     }
                     DownloadFile downloadFile = new DownloadFile();
@@ -360,7 +379,7 @@ public class FiletransferService implements IFiletransferService {
                             i = bis.read(buffer);
                         }
                     } catch (IOException e) {
-                        log.error("" + e);
+                        CommonLogger.error("" + e);
                         e.printStackTrace();
                     } finally {
                         IOUtils.closeQuietly(bis);
@@ -380,7 +399,7 @@ public class FiletransferService implements IFiletransferService {
             }
 
         } catch (Exception e) {
-            log.error("压缩过程中出现异常:"+ e);
+            CommonLogger.error("压缩过程中出现异常:"+ e);
         } finally {
             try {
                 out.close();
@@ -402,7 +421,7 @@ public class FiletransferService implements IFiletransferService {
             if (e.getMessage().contains("ClientAbortException")) {
                 //该异常忽略不做处理
             } else {
-                log.error("下传zip文件出现异常：{}", e.getMessage());
+                CommonLogger.error("下传zip文件出现异常：{}", e.getMessage());
             }
 
         } finally {
@@ -419,7 +438,7 @@ public class FiletransferService implements IFiletransferService {
         FileBean fileBean = fileMapper.selectById(userFile.getFileId());
         Previewer previewer = ufopFactory.getPreviewer(fileBean.getStorageType());
         if (previewer == null) {
-            log.error("预览失败，文件存储类型不支持预览，storageType:{}", fileBean.getStorageType());
+            CommonLogger.error("预览失败，文件存储类型不支持预览，storageType:{}", fileBean.getStorageType());
             throw new UploadException("预览失败");
         }
         PreviewFile previewFile = new PreviewFile();
@@ -435,7 +454,7 @@ public class FiletransferService implements IFiletransferService {
                 if (e.getMessage().contains("ClientAbortException")) {
                 //该异常忽略不做处理
             } else {
-                log.error("预览文件出现异常：{}", e.getMessage());
+                CommonLogger.error("预览文件出现异常：{}", e.getMessage());
             }
 
         }
@@ -450,7 +469,7 @@ public class FiletransferService implements IFiletransferService {
         pictureFile = pictureFileMapper.selectOne(new QueryWrapper<>(pictureFile));
         Previewer previewer = ufopFactory.getPreviewer(pictureFile.getStorageType());
         if (previewer == null) {
-            log.error("预览失败，文件存储类型不支持预览，storageType:{}", pictureFile.getStorageType());
+            CommonLogger.error("预览失败，文件存储类型不支持预览，storageType:{}", pictureFile.getStorageType());
             throw new UploadException("预览失败");
         }
         PreviewFile previewFile = new PreviewFile();
@@ -476,7 +495,7 @@ public class FiletransferService implements IFiletransferService {
             if (e.getMessage().contains("ClientAbortException")) {
                 //该异常忽略不做处理
             } else {
-                log.error("预览文件出现异常：{}", e.getMessage());
+                CommonLogger.error("预览文件出现异常：{}", e.getMessage());
             }
 
         }

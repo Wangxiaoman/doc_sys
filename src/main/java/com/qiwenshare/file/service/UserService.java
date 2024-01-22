@@ -1,6 +1,18 @@
 package com.qiwenshare.file.service;
 
-import cn.hutool.core.util.IdUtil;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,20 +27,12 @@ import com.qiwenshare.file.component.UserDealComp;
 import com.qiwenshare.file.controller.UserController;
 import com.qiwenshare.file.domain.user.Role;
 import com.qiwenshare.file.domain.user.UserBean;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.mapper.UserMapper;
+
+import cn.hutool.core.util.IdUtil;
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -53,15 +57,15 @@ public class UserService extends ServiceImpl<UserMapper, UserBean> implements IU
         try {
             c = jwtComp.parseJWT(token);
         } catch (Exception e) {
-            log.error("解码异常:" + e);
+            CommonLogger.error("解码异常:" + e);
             return null;
         }
         if (c == null) {
-            log.info("解码为空");
+            CommonLogger.info("解码为空");
             return null;
         }
         String subject = c.getSubject();
-        log.debug("解析结果：" + subject);
+        CommonLogger.info("解析结果：" + subject);
         UserBean tokenUserBean = JSON.parseObject(subject, UserBean.class);
         UserBean user = userMapper.selectById(tokenUserBean.getUserId());
         if (user != null) {

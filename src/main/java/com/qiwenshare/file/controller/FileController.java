@@ -26,6 +26,7 @@ import com.qiwenshare.file.domain.FileBean;
 import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.dto.file.*;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.util.QiwenFileUtil;
 import com.qiwenshare.file.util.TreeNode;
 import com.qiwenshare.file.vo.file.FileDetailVO;
@@ -148,7 +149,7 @@ public class FileController {
             }
             return RestResult.success().message("文件创建成功");
         } catch (Exception e) {
-            log.error(e.getMessage());
+            CommonLogger.error(e.getMessage());
             return RestResult.fail().message(e.getMessage());
         }
     }

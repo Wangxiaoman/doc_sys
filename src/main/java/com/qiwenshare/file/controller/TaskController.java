@@ -7,6 +7,7 @@ import com.qiwenshare.file.component.FileDealComp;
 import com.qiwenshare.file.domain.ShareFile;
 import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.service.UserFileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +40,11 @@ public class TaskController {
                 QiwenFile ufopFile = new QiwenFile(userfileList.get(i).getFilePath(), userfileList.get(i).getFileName(), userfileList.get(i).getIsDir() == 1);
                 fileDealComp.restoreParentFilePath(ufopFile, userfileList.get(i).getUserId());
                 if (i % 1000 == 0 || i == userfileList.size() - 1) {
-                    log.info("目录健康检查进度：" + (i + 1) + "/" + userfileList.size());
+                    CommonLogger.info("目录健康检查进度：" + (i + 1) + "/" + userfileList.size());
                 }
 
             } catch (Exception e) {
-                log.error(e.getMessage());
+                CommonLogger.error(e.getMessage());
             }
         }
         userfileList = userFileService.list(new QueryWrapper<UserFile>().eq("deleteFlag", 0));

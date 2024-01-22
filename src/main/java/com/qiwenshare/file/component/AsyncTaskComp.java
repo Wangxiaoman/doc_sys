@@ -8,6 +8,7 @@ import com.qiwenshare.file.api.IUserFileService;
 import com.qiwenshare.file.domain.FileBean;
 import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.mapper.FileMapper;
 import com.qiwenshare.file.mapper.UserFileMapper;
 import com.qiwenshare.ufop.factory.UFOPFactory;
@@ -80,7 +81,7 @@ public class AsyncTaskComp {
                             filetransferService.deleteFile(fileBean);
                             fileMapper.deleteById(fileBean.getFileId());
                         } catch (Exception e) {
-                            log.error("删除本地文件失败：" + JSON.toJSONString(fileBean));
+                            CommonLogger.error("删除本地文件失败：" + JSON.toJSONString(fileBean));
                         }
                     }
 
@@ -98,7 +99,7 @@ public class AsyncTaskComp {
                     filetransferService.deleteFile(fileBean);
                     fileMapper.deleteById(fileBean.getFileId());
                 } catch (Exception e) {
-                    log.error("删除本地文件失败：" + JSON.toJSONString(fileBean));
+                    CommonLogger.error("删除本地文件失败：" + JSON.toJSONString(fileBean));
                 }
             }
         }

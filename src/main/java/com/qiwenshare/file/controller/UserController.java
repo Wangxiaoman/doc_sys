@@ -1,6 +1,20 @@
 package com.qiwenshare.file.controller;
 
-import cn.hutool.core.bean.BeanUtil;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.validation.Valid;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.qiwenshare.common.anno.MyLog;
 import com.qiwenshare.common.result.RestResult;
@@ -14,18 +28,14 @@ import com.qiwenshare.file.component.JwtComp;
 import com.qiwenshare.file.domain.UserLoginInfo;
 import com.qiwenshare.file.domain.user.UserBean;
 import com.qiwenshare.file.dto.user.RegisterDTO;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.vo.user.UserLoginVo;
+
+import cn.hutool.core.bean.BeanUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
 
 
 @Tag(name = "user", description = "该接口为用户接口，主要做用户登录，注册和校验token")
@@ -80,7 +90,7 @@ public class UserController {
         try {
             token = jwtComp.createJWT(param);
         } catch (Exception e) {
-            log.info("登录失败：{}", e);
+            CommonLogger.info("登录失败：{}", e);
             return RestResult.fail().message("创建token失败！");
         }
         UserBean sessionUserBean = userService.findUserInfoByTelephone(telephone);

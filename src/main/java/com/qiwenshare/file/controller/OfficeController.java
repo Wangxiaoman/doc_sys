@@ -19,6 +19,7 @@ import com.qiwenshare.file.domain.user.UserBean;
 import com.qiwenshare.file.dto.file.CreateOfficeFileDTO;
 import com.qiwenshare.file.dto.file.EditOfficeFileDTO;
 import com.qiwenshare.file.dto.file.PreviewOfficeFileDTO;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.office.documentserver.managers.history.HistoryManager;
 import com.qiwenshare.file.office.documentserver.models.enums.Action;
 import com.qiwenshare.file.office.documentserver.models.enums.Type;
@@ -128,7 +129,7 @@ public class OfficeController {
             result.setCode(200);
             result.setMessage("获取报告成功！");
         } catch (Exception e) {
-            log.error(e.getMessage());
+            CommonLogger.error(e.getMessage());
             result.setCode(500);
             result.setMessage("服务器错误！");
         }
@@ -141,7 +142,7 @@ public class OfficeController {
         RestResult<Object> result = new RestResult<>();
         String token = request.getHeader("token");
         String previewUrl = request.getScheme() + "://" + deploymentHost + ":" + port + "/filetransfer/preview?userFileId=" + editOfficeFileDTO.getUserFileId() + "&isMin=false&shareBatchNum=undefined&extractionCode=undefined&token=" + token;
-        log.info("editOfficeFile");
+        CommonLogger.info("editOfficeFile");
         try {
             JwtUser loginUser = SessionUtil.getSession();
             UserFile userFile = userFileService.getById(editOfficeFileDTO.getUserFileId());
@@ -172,7 +173,7 @@ public class OfficeController {
             result.setCode(200);
             result.setMessage("编辑报告成功！");
         } catch (Exception e) {
-            log.error(e.getMessage());
+            CommonLogger.error(e.getMessage());
             result.setCode(500);
             result.setMessage("服务器错误！");
         }
@@ -194,7 +195,7 @@ public class OfficeController {
         String body = scanner.hasNext() ? scanner.next() : "";
 
         JSONObject jsonObj = JSON.parseObject(body);
-        log.info("===saveeditedfile:" + jsonObj.get("status")); ;
+        CommonLogger.info("===saveeditedfile:" + jsonObj.get("status")); ;
         String status = jsonObj != null ? jsonObj.get("status").toString() : "";
         if ("2".equals(status) || "6".equals(status)) {
             String type = request.getParameter("type");
@@ -218,11 +219,11 @@ public class OfficeController {
                     fileDealComp.saveFileInputStream(fileBean.getStorageType(), fileUrl, stream);
 
                 } catch (Exception e) {
-                    log.error(e.getMessage());
+                    CommonLogger.error(e.getMessage());
                 } finally {
 
                     int fileLength = connection.getContentLength();
-                    log.info("当前修改文件大小为：" + (long) fileLength);
+                    CommonLogger.info("当前修改文件大小为：" + (long) fileLength);
 
                     DownloadFile downloadFile = new DownloadFile();
                     downloadFile.setFileUrl(fileBean.getFileUrl());

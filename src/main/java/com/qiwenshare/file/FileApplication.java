@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.qiwenshare.file.log.CommonLogger;
+
 @SpringBootApplication
 @MapperScan("com.qiwenshare.file.mapper")
 @EnableScheduling
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class FileApplication {
 
     public static void main(String[] args) {
+        CommonLogger.info("spring boot start !!!!");
         SpringApplication.run(FileApplication.class, args);
     }
     @Bean

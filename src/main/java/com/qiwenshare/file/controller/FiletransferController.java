@@ -1,6 +1,27 @@
 package com.qiwenshare.file.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.qiwenshare.common.anno.MyLog;
 import com.qiwenshare.common.result.RestResult;
 import com.qiwenshare.common.util.MimeUtils;
@@ -18,6 +39,7 @@ import com.qiwenshare.file.dto.file.DownloadFileDTO;
 import com.qiwenshare.file.dto.file.PreviewDTO;
 import com.qiwenshare.file.dto.file.UploadFileDTO;
 import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.service.StorageService;
 import com.qiwenshare.file.vo.file.UploadFileVo;
 import com.qiwenshare.ufop.factory.UFOPFactory;
@@ -25,25 +47,10 @@ import com.qiwenshare.ufop.operation.download.Downloader;
 import com.qiwenshare.ufop.operation.download.domain.DownloadFile;
 import com.qiwenshare.ufop.operation.download.domain.Range;
 import com.qiwenshare.ufop.util.UFOPUtils;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Tag(name = "filetransfer", description = "该接口为文件传输接口，主要用来做文件的上传、下载和预览")
@@ -119,7 +126,7 @@ public class FiletransferController {
                 token,
                 downloadFileDTO.getUserFileId(), null);
         if (!authResult) {
-            log.error("没有权限下载！！！");
+            CommonLogger.error("没有权限下载！！！");
             return;
         }
         httpServletResponse.setContentType("application/force-download");// 设置强制下载不打开
@@ -161,7 +168,7 @@ public class FiletransferController {
                 token,
                 batchDownloadFileDTO.getUserFileIds(), null);
         if (!authResult) {
-            log.error("没有权限下载！！！");
+            CommonLogger.error("没有权限下载！！！");
             return;
         }
 
@@ -219,7 +226,7 @@ public class FiletransferController {
                 previewDTO.getPlatform());
 
         if (!authResult) {
-            log.error("没有权限预览！！！");
+            CommonLogger.error("没有权限预览！！！");
             return;
         }
 

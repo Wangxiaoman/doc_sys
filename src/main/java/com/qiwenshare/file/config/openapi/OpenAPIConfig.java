@@ -15,12 +15,12 @@ public class OpenAPIConfig {
     @Bean
     public OpenAPI qiwenFileOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("奇文网盘 API")
+                .info(new Info().title("文档管理系统 API")
                         .description("基于Spring Boot 2 + VUE CLI@3框架开发的分布式文件管理系统。")
                         .version("v1.1.2")
                         .license(new License().name("MIT").url("http://springdoc.org")))
                         .externalDocs(new ExternalDocumentation()
-                        .description("奇文网盘说明文档")
+                        .description("文档管理系统说明文档")
                         .url("https://pan.qiwenshare.com/docs/"));
     }
 
