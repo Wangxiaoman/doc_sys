@@ -11,7 +11,7 @@ public class UserLoginVo {
     private String userId;
     //    @Schema(description = "openId", example = "")
 //    private String openId;
-    @Schema(description = "用户名", example = "奇文网盘")
+    @Schema(description = "用户名", example = "文档系统")
     private String username;
     @Schema(description = "真实名", example = "张三")
     private String realname;
