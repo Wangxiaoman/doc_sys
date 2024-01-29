@@ -1,5 +1,6 @@
 package com.qiwenshare.file.service;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +24,10 @@ import com.qiwenshare.common.constant.FileConstant;
 import com.qiwenshare.common.util.DateUtil;
 import com.qiwenshare.common.util.security.JwtUser;
 import com.qiwenshare.common.util.security.SessionUtil;
+import com.qiwenshare.file.api.IFileService;
 import com.qiwenshare.file.api.IUserFileService;
 import com.qiwenshare.file.component.FileDealComp;
+import com.qiwenshare.file.domain.FileBean;
 import com.qiwenshare.file.domain.RecoveryFile;
 import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.io.QiwenFile;
@@ -31,6 +35,7 @@ import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.mapper.RecoveryFileMapper;
 import com.qiwenshare.file.mapper.UserFileMapper;
 import com.qiwenshare.file.vo.file.FileListVO;
+import com.qiwenshare.ufop.util.UFOPUtils;
 
 import cn.hutool.core.net.URLDecoder;
 import cn.hutool.core.util.IdUtil;
@@ -47,6 +52,12 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
     RecoveryFileMapper recoveryFileMapper;
     @Resource
     FileDealComp fileDealComp;
+    @Resource
+    private PdfConvertTextService pdfConvertTextService;
+    @Resource
+    private IFileService fileService;
+    @Value("${ufop.storage-type}")
+    private Integer storageType;
 
     public static Executor executor = Executors.newFixedThreadPool(20);
 
@@ -261,5 +272,50 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
         });
     }
 
-
+    @Override
+    public int pdfConvertPdf(String userFileId) {
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        
+        UserFile oldUserFile = userFileMapper.selectById(userFileId);
+        FileBean oldFileBean = fileService.getById(oldUserFile.getFileId());
+        String originPdfPath = UFOPUtils.getStaticPath() + oldFileBean.getFileUrl();
+        
+        String extendName = "docx";
+        // 生产一个新文件的路径
+        String fileUrl = UFOPUtils.getUploadFileUrl(uuid, extendName);
+        // 将原路径的文件
+        File file = pdfConvertTextService.pdfConvertWord(originPdfPath, UFOPUtils.getStaticPath() + fileUrl);
+        if(file != null) {
+            // 写入file数据
+            FileBean fileBean = new FileBean();
+            fileBean.setFileId(IdUtil.getSnowflakeNextIdStr());
+            fileBean.setFileSize(file.length());
+            fileBean.setFileUrl(fileUrl);
+            fileBean.setStorageType(storageType);
+            fileBean.setIdentifier(uuid);
+            fileBean.setCreateTime(DateUtil.getCurrentTime());
+            fileBean.setCreateUserId(SessionUtil.getSession().getUserId());
+            fileBean.setFileStatus(1);
+            boolean saveFlag = fileService.save(fileBean);
+            UserFile userFile = new UserFile();
+            if (saveFlag) {
+                // 写入userFile
+                userFile.setUserFileId(IdUtil.getSnowflakeNextIdStr());
+                userFile.setUserId(SessionUtil.getUserId());
+                userFile.setFileName(oldUserFile.getFileName());
+                userFile.setFilePath(oldUserFile.getFilePath());
+                userFile.setDeleteFlag(0);
+                userFile.setIsDir(0);
+                userFile.setExtendName(extendName);
+                userFile.setUploadTime(DateUtil.getCurrentTime());
+                userFile.setFileId(fileBean.getFileId());
+                userFile.setCreateTime(DateUtil.getCurrentTime());
+                userFile.setCreateUserId(SessionUtil.getUserId());
+                String fileName = fileDealComp.getRepeatFileName(userFile, userFile.getFilePath());
+                userFile.setFileName(fileName);
+                return userFileMapper.insert(userFile);
+            }
+        }
+        return 0;
+    }
 }

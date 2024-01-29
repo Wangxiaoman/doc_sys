@@ -16,6 +16,7 @@ public interface UserFileMapper extends BaseMapper<UserFile> {
 
     List<UserFile> selectUserFileByLikeRightFilePath(@Param("filePath") String filePath, @Param("userId") String userId);
 
+    int selectCount(@Param("filePath") String filePath, @Param("userId") String userId,@Param("extendName") String extendName, @Param("fileName") String fileName);
     IPage<FileListVO> selectPageVo(Page<?> page, @Param("userFile") UserFile userFile, @Param("fileTypeId") Integer fileTypeId);
     Long selectStorageSizeByUserId(@Param("userId") String userId);
 }

@@ -128,7 +128,7 @@ public class FiletransferService implements IFiletransferService {
                 userFileMapper.insert(userFile);
                 fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
             } catch (Exception e) {
-                CommonLogger.warn("极速上传文件冲突重命名处理: {}", JSON.toJSONString(userFile));
+                CommonLogger.error("极速上传文件冲突重命名处理: {}", JSON.toJSONString(userFile));
 
             }
 
@@ -208,7 +208,7 @@ public class FiletransferService implements IFiletransferService {
                 try {
                     fileMapper.insert(fileBean);
                 } catch (Exception e) {
-                    CommonLogger.warn("identifier Duplicate: {}", fileBean.getIdentifier());
+                    CommonLogger.error("identifier Duplicate: {}", fileBean.getIdentifier());
                     fileBean = fileMapper.selectOne(new QueryWrapper<FileBean>().lambda().eq(FileBean::getIdentifier, fileBean.getIdentifier()));
                 }
 

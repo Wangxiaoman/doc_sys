@@ -1,13 +1,35 @@
 package com.qiwenshare.file.util;
 
-import cn.hutool.core.util.IdUtil;
+import java.io.File;
+import java.io.FileOutputStream;
+
 import com.qiwenshare.common.util.DateUtil;
 import com.qiwenshare.common.util.security.SessionUtil;
 import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.io.QiwenFile;
 
+import cn.hutool.core.util.IdUtil;
+
 public class QiwenFileUtil {
 
+    public static long writeTxt(String txtPath,String content){    
+        FileOutputStream fileOutputStream = null;
+        File file = new File(txtPath);
+        try {
+            if(file.exists()){
+                //判断文件是否存在，如果不存在就新建一个txt
+                file.createNewFile();
+            }
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(content.getBytes());
+            fileOutputStream.flush();
+            fileOutputStream.close();
+            return file.length();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+     }
 
     public static UserFile getQiwenDir(String userId, String filePath, String fileName) {
         UserFile userFile = new UserFile();

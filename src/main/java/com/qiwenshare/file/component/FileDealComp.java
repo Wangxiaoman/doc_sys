@@ -1,36 +1,23 @@
 package com.qiwenshare.file.component;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.IdUtil;
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import com.alibaba.fastjson2.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.qiwenshare.common.util.DateUtil;
-import com.qiwenshare.common.util.MusicUtils;
-import com.qiwenshare.common.util.security.SessionUtil;
-import com.qiwenshare.file.api.IShareFileService;
-import com.qiwenshare.file.api.IShareService;
-import com.qiwenshare.file.api.IUserService;
-import com.qiwenshare.file.config.es.FileSearch;
-import com.qiwenshare.file.domain.*;
-import com.qiwenshare.file.io.QiwenFile;
-import com.qiwenshare.file.log.CommonLogger;
-import com.qiwenshare.file.mapper.FileMapper;
-import com.qiwenshare.file.mapper.MusicMapper;
-import com.qiwenshare.file.mapper.UserFileMapper;
-import com.qiwenshare.file.util.QiwenFileUtil;
-import com.qiwenshare.file.util.TreeNode;
-import com.qiwenshare.ufop.factory.UFOPFactory;
-import com.qiwenshare.ufop.operation.copy.Copier;
-import com.qiwenshare.ufop.operation.copy.domain.CopyFile;
-import com.qiwenshare.ufop.operation.download.Downloader;
-import com.qiwenshare.ufop.operation.download.domain.DownloadFile;
-import com.qiwenshare.ufop.operation.write.Writer;
-import com.qiwenshare.ufop.operation.write.domain.WriteFile;
-import com.qiwenshare.ufop.util.UFOPUtils;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -47,14 +34,40 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyAPIC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.*;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.qiwenshare.common.util.DateUtil;
+import com.qiwenshare.common.util.MusicUtils;
+import com.qiwenshare.common.util.security.SessionUtil;
+import com.qiwenshare.file.api.IShareFileService;
+import com.qiwenshare.file.api.IShareService;
+import com.qiwenshare.file.api.IUserService;
+import com.qiwenshare.file.config.es.FileSearch;
+import com.qiwenshare.file.domain.FileBean;
+import com.qiwenshare.file.domain.Music;
+import com.qiwenshare.file.domain.Share;
+import com.qiwenshare.file.domain.ShareFile;
+import com.qiwenshare.file.domain.UserFile;
+import com.qiwenshare.file.io.QiwenFile;
+import com.qiwenshare.file.log.CommonLogger;
+import com.qiwenshare.file.mapper.FileMapper;
+import com.qiwenshare.file.mapper.MusicMapper;
+import com.qiwenshare.file.mapper.UserFileMapper;
+import com.qiwenshare.file.util.QiwenFileUtil;
+import com.qiwenshare.file.util.TreeNode;
+import com.qiwenshare.ufop.factory.UFOPFactory;
+import com.qiwenshare.ufop.operation.copy.Copier;
+import com.qiwenshare.ufop.operation.copy.domain.CopyFile;
+import com.qiwenshare.ufop.operation.download.Downloader;
+import com.qiwenshare.ufop.operation.download.domain.DownloadFile;
+import com.qiwenshare.ufop.operation.write.Writer;
+import com.qiwenshare.ufop.operation.write.domain.WriteFile;
+import com.qiwenshare.ufop.util.UFOPUtils;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.IdUtil;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 文件逻辑处理组件
@@ -305,6 +318,7 @@ public class FileDealComp {
                 }
             } catch (Exception e) {
                 log.debug("ES更新操作失败，请检查配置");
+                CommonLogger.error("ES更新操作失败，请检查配置,ex:",e);
             }
         });
 
@@ -422,6 +436,24 @@ public class FileDealComp {
         downloadFile.setFileUrl(fileUrl);
         InputStream inputStream = ufopFactory.getDownloader(storageType).getInputStream(downloadFile);
         return DigestUtils.md5Hex(inputStream);
+    }
+    
+    public String getBase64ByFile(String fileUrl, int storageType) throws Exception {
+        File imageFile = new File(UFOPUtils.getStaticPath() + fileUrl);
+        return Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(imageFile));
+    }
+    
+    public static String convertToBase64(InputStream inputStream) throws Exception {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int bytesRead = -1;
+
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+
+        byte[] data = outputStream.toByteArray();
+        return Base64.getEncoder().encodeToString(data);
     }
 
     public void saveFileInputStream(int storageType, String fileUrl, InputStream inputStream) throws IOException {
