@@ -20,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.StringUtil;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -60,6 +61,8 @@ import com.qiwenshare.ufop.operation.copy.Copier;
 import com.qiwenshare.ufop.operation.copy.domain.CopyFile;
 import com.qiwenshare.ufop.operation.download.Downloader;
 import com.qiwenshare.ufop.operation.download.domain.DownloadFile;
+import com.qiwenshare.ufop.operation.read.Reader;
+import com.qiwenshare.ufop.operation.read.domain.ReadFile;
 import com.qiwenshare.ufop.operation.write.Writer;
 import com.qiwenshare.ufop.operation.write.domain.WriteFile;
 import com.qiwenshare.ufop.util.UFOPUtils;
@@ -297,23 +300,47 @@ public class FileDealComp {
     public void uploadESByUserFileId(String userFileId) {
         exec.execute(()->{
             try {
-
+                Map<String, Object> param = new HashMap<>();
+                param.put("userFileId", userFileId);
+                List<UserFile> userfileResult = userFileMapper.selectByMap(param);
+                if (userfileResult != null && userfileResult.size() > 0) {
+                    UserFile uf = userfileResult.get(0);
+                    FileSearch fileSearch = new FileSearch();
+                    BeanUtil.copyProperties(uf, fileSearch);
+                    FileBean fileBean = fileMapper.selectById(uf.getFileId());
+                    fileSearch.setFileUrl(fileBean.getFileUrl());
+                    fileSearch.setStorageType(fileBean.getStorageType());
+                    if (fileSearch.getIsDir() == 0) {
+                        Reader reader = ufopFactory.getReader(fileBean.getStorageType());
+                        ReadFile readFile = new ReadFile();
+                        readFile.setFileUrl(fileBean.getFileUrl());
+                        String content = reader.read(readFile);
+                        if(StringUtil.isNotBlank(content)) {
+                            content = content.length() > 500 ? content.substring(0, 500) : content;
+                            //全文搜索
+                            fileSearch.setContent(content);
+                        }
+                    }
+                    elasticsearchClient.index(i -> i.index("filesearch").id(fileSearch.getUserFileId()).document(fileSearch));
+                }
+            } catch (Exception e) {
+                log.debug("ES更新操作失败，请检查配置");
+                CommonLogger.error("ES更新操作失败，请检查配置,ex:",e);
+            }
+        });
+    }
+    
+    public void uploadESByUserFileIdWithContent(String userFileId, String content) {
+        exec.execute(()->{
+            try {
                 Map<String, Object> param = new HashMap<>();
                 param.put("userFileId", userFileId);
                 List<UserFile> userfileResult = userFileMapper.selectByMap(param);
                 if (userfileResult != null && userfileResult.size() > 0) {
                     FileSearch fileSearch = new FileSearch();
                     BeanUtil.copyProperties(userfileResult.get(0), fileSearch);
-                /*if (fileSearch.getIsDir() == 0) {
-
-                    Reader reader = ufopFactory.getReader(fileSearch.getStorageType());
-                    ReadFile readFile = new ReadFile();
-                    readFile.setFileUrl(fileSearch.getFileUrl());
-                    String content = reader.read(readFile);
                     //全文搜索
                     fileSearch.setContent(content);
-
-                }*/
                     elasticsearchClient.index(i -> i.index("filesearch").id(fileSearch.getUserFileId()).document(fileSearch));
                 }
             } catch (Exception e) {

@@ -96,11 +96,12 @@ public class OcrConvertTextService {
             }
             
             String extendName = "txt";
+            String content = sb.toString();
             // 生产一个新文件的路径
             String fileUrl = UFOPUtils.getUploadFileUrl(uuid, extendName);
             String wordFilePath = UFOPUtils.getStaticPath() + fileUrl;
             
-            long fileSize = QiwenFileUtil.writeTxt(wordFilePath, sb.toString());
+            long fileSize = QiwenFileUtil.writeTxt(wordFilePath, content);
             
             // 写入file数据
             FileBean fileBean = new FileBean();
@@ -115,6 +116,8 @@ public class OcrConvertTextService {
             boolean saveFlag = fileService.save(fileBean);
             UserFile userFile = new UserFile();
             if (saveFlag) {
+                content = content.length() > 300 ? content.substring(0,300) : content;
+                fileDealComp.uploadESByUserFileIdWithContent(userFile.getUserFileId(), content);
                 // 写入userFile
                 userFile.setUserFileId(IdUtil.getSnowflakeNextIdStr());
                 userFile.setUserId(SessionUtil.getUserId());
@@ -127,6 +130,7 @@ public class OcrConvertTextService {
                 userFile.setFileId(fileBean.getFileId());
                 userFile.setCreateTime(DateUtil.getCurrentTime());
                 userFile.setCreateUserId(SessionUtil.getUserId());
+                userFile.setEsFlag(1);
                 String fileName = fileDealComp.getRepeatFileName(userFile, userFile.getFilePath());
                 userFile.setFileName(fileName);
                 userFileMapper.insert(userFile);

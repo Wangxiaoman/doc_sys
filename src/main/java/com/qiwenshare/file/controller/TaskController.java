@@ -1,7 +1,18 @@
 package com.qiwenshare.file.controller;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Controller;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.qiwenshare.file.api.IShareFileService;
 import com.qiwenshare.file.component.FileDealComp;
 import com.qiwenshare.file.domain.ShareFile;
@@ -9,13 +20,9 @@ import com.qiwenshare.file.domain.UserFile;
 import com.qiwenshare.file.io.QiwenFile;
 import com.qiwenshare.file.log.CommonLogger;
 import com.qiwenshare.file.service.UserFileService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Controller;
 
-import javax.annotation.Resource;
-import java.util.List;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Controller
@@ -47,11 +54,16 @@ public class TaskController {
                 CommonLogger.error(e.getMessage());
             }
         }
-        userfileList = userFileService.list(new QueryWrapper<UserFile>().eq("deleteFlag", 0));
-        for (UserFile userFile : userfileList) {
-            fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+        userfileList = userFileService.list(new QueryWrapper<UserFile>().eq("deleteFlag", 0).eq("esFlag", 0));
+        if(CollectionUtils.isNotEmpty(userfileList)) {
+            List<String> userFileIdList = new ArrayList<>();
+            for (UserFile userFile : userfileList) {
+                fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+                userFileIdList.add(userFile.getUserFileId());
+            }
+            // 写完ES更新状态
+            userFileService.update(new UpdateWrapper<UserFile>().lambda().set(UserFile::getEsFlag, 1).in(UserFile::getUserFileId, userFileIdList));
         }
-
     }
 
     @Scheduled(fixedRate = Long.MAX_VALUE)

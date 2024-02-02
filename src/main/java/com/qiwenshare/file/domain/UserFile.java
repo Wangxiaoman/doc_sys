@@ -62,6 +62,8 @@ public class UserFile {
     private String modifyTime;
     @Column(columnDefinition="varchar(20) comment '修改用户id'")
     private String modifyUserId;
+    @Column(columnDefinition="int(1) comment '是否已经写入ES(0-否,1-是)'")
+    private Integer esFlag;
 
     public UserFile() {};
     public UserFile(QiwenFile qiwenFile, String userId, String fileId) {

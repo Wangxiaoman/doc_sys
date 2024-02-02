@@ -125,6 +125,7 @@ public class FiletransferService implements IFiletransferService {
             UserFile userFile = new UserFile(qiwenFile, SessionUtil.getUserId(), file.getFileId());
 
             try {
+                userFile.setEsFlag(1);
                 userFileMapper.insert(userFile);
                 fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
             } catch (Exception e) {
@@ -216,6 +217,7 @@ public class FiletransferService implements IFiletransferService {
 
 
                 try {
+                    userFile.setEsFlag(1);
                     userFileMapper.insert(userFile);
                     fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
                 } catch (Exception e) {

@@ -187,7 +187,7 @@ public class FileController {
         }
 
         UserFile userFile = QiwenFileUtil.getQiwenDir(userId, filePath, createFoldDto.getFileName());
-
+        userFile.setEsFlag(1);
         userFileService.save(userFile);
         fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
         return RestResult.success();
