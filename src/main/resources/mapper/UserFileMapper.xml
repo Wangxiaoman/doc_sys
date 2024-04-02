@@ -52,5 +52,10 @@
         LEFT JOIN file ON file.fileId = userfile.fileId
         WHERE userfile.userId = #{userId}
     </select>
+    
+    <select id="selectUserFileById" resultType="com.qiwenshare.file.domain.UserFile">
+        select * from userfile
+        where userFileId= #{userFileId} and deleteFlag = 0
+    </select>
 
 </mapper>

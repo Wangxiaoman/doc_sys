@@ -298,29 +298,36 @@ public class FileDealComp {
 
 
     public void uploadESByUserFileId(String userFileId) {
+        CommonLogger.info("es search userFileId:"+ userFileId);
         exec.execute(()->{
             try {
-                Map<String, Object> param = new HashMap<>();
-                param.put("userFileId", userFileId);
-                List<UserFile> userfileResult = userFileMapper.selectByMap(param);
+                CommonLogger.info("search user file param userfileId:"+userFileId);
+                List<UserFile> userfileResult = userFileMapper.selectUserFileById(userFileId);
+                CommonLogger.info("search user file search userFileMapper:"+userFileMapper.toString() + ",userfileResult:"+userfileResult==null?"":userfileResult.toString());
                 if (userfileResult != null && userfileResult.size() > 0) {
                     UserFile uf = userfileResult.get(0);
+                    CommonLogger.info("search user file:"+uf.toString());
                     FileSearch fileSearch = new FileSearch();
                     BeanUtil.copyProperties(uf, fileSearch);
                     FileBean fileBean = fileMapper.selectById(uf.getFileId());
-                    fileSearch.setFileUrl(fileBean.getFileUrl());
-                    fileSearch.setStorageType(fileBean.getStorageType());
-                    if (fileSearch.getIsDir() == 0) {
-                        Reader reader = ufopFactory.getReader(fileBean.getStorageType());
-                        ReadFile readFile = new ReadFile();
-                        readFile.setFileUrl(fileBean.getFileUrl());
-                        String content = reader.read(readFile);
-                        if(StringUtil.isNotBlank(content)) {
-                            content = content.length() > 500 ? content.substring(0, 500) : content;
-                            //全文搜索
-                            fileSearch.setContent(content);
+                    if(fileBean != null) {
+                        CommonLogger.info("search user file bean:"+fileBean.toString());
+                        fileSearch.setFileUrl(fileBean.getFileUrl());
+                        fileSearch.setStorageType(fileBean.getStorageType());
+                        fileSearch.setFileSize(fileBean.getFileSize());
+                        if (fileSearch.getIsDir() == 0) {
+                            Reader reader = ufopFactory.getReader(fileBean.getStorageType());
+                            ReadFile readFile = new ReadFile();
+                            readFile.setFileUrl(fileBean.getFileUrl());
+                            String content = reader.read(readFile);
+                            if(StringUtil.isNotBlank(content)) {
+                                content = content.length() > 500 ? content.substring(0, 500) : content;
+                                //全文搜索
+                                fileSearch.setContent(content);
+                            }
                         }
                     }
+                    CommonLogger.info("es search insert index filesearch:"+fileSearch.toString());
                     elasticsearchClient.index(i -> i.index("filesearch").id(fileSearch.getUserFileId()).document(fileSearch));
                 }
             } catch (Exception e) {
@@ -615,5 +622,14 @@ public class FileDealComp {
             }
         }
     }
-
+//    public static void main(String[] args) {
+//        try {
+//            File file = new File("/Users/xiaomanwang/Downloads/test1111.png");
+//            String str = Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
+//            System.out.println(str);
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//    }
 }

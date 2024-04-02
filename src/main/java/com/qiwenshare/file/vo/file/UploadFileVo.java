@@ -17,6 +17,6 @@ public class UploadFileVo {
     private boolean needMerge;
     @Schema(description = "已经上传的分片", example = "[1,2,3]")
     private List<Integer> uploaded;
-
+    private String userFileId;
 
 }

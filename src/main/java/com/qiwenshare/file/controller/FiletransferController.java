@@ -14,6 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,8 +72,7 @@ public class FiletransferController {
     StorageService storageService;
     @Resource
     UFOPFactory ufopFactory;
-
-
+    
     public static final String CURRENT_MODULE = "文件传输接口";
 
     @Operation(summary = "极速上传", description = "校验文件MD5判断文件是否存在，如果存在直接上传成功并返回skipUpload=true，如果不存在返回skipUpload=false需要再次调用该接口的POST方法", tags = {"filetransfer"})
@@ -88,6 +88,9 @@ public class FiletransferController {
             return RestResult.fail().message("存储空间不足");
         }
         UploadFileVo uploadFileVo = filetransferService.uploadFileSpeed(uploadFileDto);
+        if(uploadFileVo != null && StringUtils.isNotEmpty(uploadFileVo.getUserFileId())) {
+            fileDealComp.uploadESByUserFileId(uploadFileVo.getUserFileId());
+        }
         return RestResult.success().data(uploadFileVo);
 
     }
@@ -100,8 +103,13 @@ public class FiletransferController {
 
         JwtUser sessionUserBean = SessionUtil.getSession();
 
-        filetransferService.uploadFile(request, uploadFileDto, sessionUserBean.getUserId());
-
+        List<String> userFileIds = filetransferService.uploadFile(request, uploadFileDto, sessionUserBean.getUserId());
+        if(CollectionUtils.isNotEmpty(userFileIds)) {
+            for(String userFileId : userFileIds) {
+                fileDealComp.uploadESByUserFileId(userFileId);
+            }
+        }
+        
         UploadFileVo uploadFileVo = new UploadFileVo();
         return RestResult.success().data(uploadFileVo);
 

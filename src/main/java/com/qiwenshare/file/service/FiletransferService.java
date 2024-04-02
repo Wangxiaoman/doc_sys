@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -85,20 +86,19 @@ public class FiletransferService implements IFiletransferService {
 
     @Resource
     FileMapper fileMapper;
-
     @Resource
     UserFileMapper userFileMapper;
-
-    @Resource
-    UFOPFactory ufopFactory;
-    @Resource
-    FileDealComp fileDealComp;
     @Resource
     UploadTaskDetailMapper uploadTaskDetailMapper;
     @Resource
     UploadTaskMapper uploadTaskMapper;
     @Resource
     ImageMapper imageMapper;
+    
+    @Resource
+    UFOPFactory ufopFactory;
+    @Resource
+    FileDealComp fileDealComp;
 
     @Resource
     PictureFileMapper pictureFileMapper;
@@ -127,7 +127,7 @@ public class FiletransferService implements IFiletransferService {
             try {
                 userFile.setEsFlag(1);
                 userFileMapper.insert(userFile);
-                fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+                uploadFileVo.setUserFileId(userFile.getUserFileId());
             } catch (Exception e) {
                 CommonLogger.error("极速上传文件冲突重命名处理: {}", JSON.toJSONString(userFile));
 
@@ -171,7 +171,7 @@ public class FiletransferService implements IFiletransferService {
     }
 
     @Override
-    public void uploadFile(HttpServletRequest request, UploadFileDTO uploadFileDto, String userId) {
+    public List<String> uploadFile(HttpServletRequest request, UploadFileDTO uploadFileDto, String userId) {
 
         UploadFile uploadFile = new UploadFile();
         uploadFile.setChunkNumber(uploadFileDto.getChunkNumber());
@@ -193,6 +193,8 @@ public class FiletransferService implements IFiletransferService {
             CommonLogger.error("上传失败，请检查UFOP连接配置是否正确");
             throw new UploadException("上传失败", e);
         }
+        List<String> userFileIds = new ArrayList<>();
+        
         for (int i = 0; i < uploadFileResultList.size(); i++){
             UploadFileResult uploadFileResult = uploadFileResultList.get(i);
             String relativePath = uploadFileDto.getRelativePath();
@@ -217,9 +219,14 @@ public class FiletransferService implements IFiletransferService {
 
 
                 try {
+                    CommonLogger.info("insert userfile info:"+userFile);
                     userFile.setEsFlag(1);
-                    userFileMapper.insert(userFile);
-                    fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+                    int result = userFileMapper.insert(userFile);
+                    if(result > 0) {
+                        CommonLogger.info("insert userfile info result:"+result);
+                        //fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+                        userFileIds.add(userFile.getUserFileId());
+                    }
                 } catch (Exception e) {
                     UserFile userFile1 = userFileMapper.selectOne(new QueryWrapper<UserFile>().lambda()
                             .eq(UserFile::getUserId, userFile.getUserId())
@@ -233,8 +240,10 @@ public class FiletransferService implements IFiletransferService {
                         CommonLogger.warn("文件冲突重命名处理: {}", JSON.toJSONString(userFile1));
                         String fileName = fileDealComp.getRepeatFileName(userFile, userFile.getFilePath());
                         userFile.setFileName(fileName);
-                        userFileMapper.insert(userFile);
-                        fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+                        int result = userFileMapper.insert(userFile);
+                        if(result > 0) {
+                            userFileIds.add(userFile.getUserFileId());
+                        }
                     }
                 }
 
@@ -295,7 +304,8 @@ public class FiletransferService implements IFiletransferService {
                 uploadTaskMapper.update(null, lambdaUpdateWrapper);
             }
         }
-
+        
+        return userFileIds;
     }
 
 

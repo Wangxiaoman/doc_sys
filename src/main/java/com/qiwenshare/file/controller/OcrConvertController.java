@@ -54,7 +54,7 @@ public class OcrConvertController {
             FileBean fileBean = fileService.getById(userFile.getFileId());
             String fileUrl = fileBean.getFileUrl();
             String fileBase64 = fileDealComp.getBase64ByFile(fileUrl,fileBean.getStorageType());
-            ocrService.pdfConvertText(fileBase64, userFile);
+            ocrService.ocrConvertText(fileBase64, userFile);
             return RestResult.success().data("生产新txt文件，文件名称为:"+userFile.getFileName()+".txt");
         }catch(Exception ex) {
             CommonLogger.error("file ocr to text error,ex:",ex);

@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.eclipse.jetty.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -246,12 +247,14 @@ public class FileController {
         }
 
         List<SearchFileVO> searchFileVOList = new ArrayList<>();
-        for (Hit<FileSearch> hit : search.hits().hits()) {
-            SearchFileVO searchFileVO = new SearchFileVO();
-            BeanUtil.copyProperties(hit.source(), searchFileVO);
-            searchFileVO.setHighLight(hit.highlight());
-            searchFileVOList.add(searchFileVO);
-            asyncTaskComp.checkESUserFileId(searchFileVO.getUserFileId());
+        if(search != null && search.hits() != null && !search.hits().hits().isEmpty()) {
+            for (Hit<FileSearch> hit : search.hits().hits()) {
+                SearchFileVO searchFileVO = new SearchFileVO();
+                BeanUtil.copyProperties(hit.source(), searchFileVO);
+                searchFileVO.setHighLight(hit.highlight());
+                searchFileVOList.add(searchFileVO);
+                asyncTaskComp.checkESUserFileId(searchFileVO.getUserFileId());
+            }
         }
         return RestResult.success().dataList(searchFileVOList, searchFileVOList.size());
     }

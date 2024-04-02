@@ -16,7 +16,7 @@ public interface IFiletransferService {
 
     UploadFileVo uploadFileSpeed(UploadFileDTO uploadFileDTO);
 
-    void uploadFile(HttpServletRequest request, UploadFileDTO UploadFileDto, String userId);
+    List<String> uploadFile(HttpServletRequest request, UploadFileDTO UploadFileDto, String userId);
 
     void downloadFile(HttpServletResponse httpServletResponse, DownloadFileDTO downloadFileDTO);
     void downloadUserFileList(HttpServletResponse httpServletResponse, String filePath, String fileName, List<String> userFileIds);

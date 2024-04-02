@@ -1,5 +1,7 @@
 package com.qiwenshare.file.config.es;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -11,8 +13,8 @@ public class FileSearch {
     private String fileId;
     private String fileName;
     private String content;
-    private String fileUrl;
-    private Long fileSize;
+    private String fileUrl = StringUtils.EMPTY;
+    private Long fileSize = 0l;
     private Integer storageType;
     private String identifier;
     private Long userId;

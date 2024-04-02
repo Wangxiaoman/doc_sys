@@ -70,7 +70,7 @@ public class OcrConvertTextService {
     }
     
     // 生产新的txt文件
-    public void pdfConvertText(String baseStr, UserFile originUserFile) throws Exception {
+    public void ocrConvertText(String baseStr, UserFile originUserFile) throws Exception {
         String uuid = UUID.randomUUID().toString().replaceAll("-", "");
         JSONObject ocrJson = ocrBase64Str(baseStr);
         if(ocrJson.get("status").equals("000")){
@@ -116,7 +116,7 @@ public class OcrConvertTextService {
             boolean saveFlag = fileService.save(fileBean);
             UserFile userFile = new UserFile();
             if (saveFlag) {
-                content = content.length() > 300 ? content.substring(0,300) : content;
+                content = content.length() > 500 ? content.substring(0,500) : content;
                 fileDealComp.uploadESByUserFileIdWithContent(userFile.getUserFileId(), content);
                 // 写入userFile
                 userFile.setUserFileId(IdUtil.getSnowflakeNextIdStr());

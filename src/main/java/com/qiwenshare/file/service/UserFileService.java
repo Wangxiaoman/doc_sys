@@ -313,7 +313,11 @@ public class UserFileService extends ServiceImpl<UserFileMapper, UserFile> imple
                 userFile.setCreateUserId(SessionUtil.getUserId());
                 String fileName = fileDealComp.getRepeatFileName(userFile, userFile.getFilePath());
                 userFile.setFileName(fileName);
-                return userFileMapper.insert(userFile);
+                userFile.setEsFlag(1);
+                int result =  userFileMapper.insert(userFile);
+                if(result > 0) {
+                    fileDealComp.uploadESByUserFileId(userFile.getUserFileId());
+                }
             }
         }
         return 0;

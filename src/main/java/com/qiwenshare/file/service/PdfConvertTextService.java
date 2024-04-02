@@ -231,7 +231,29 @@ public class PdfConvertTextService {
     }
 
     public static void main(String[] args) {
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/file/abc.pdf",
-                "/Users/xiaomanwang/doc_sys/file/abc_convert.docx");
+        long begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/schreyer2012.pdf","/Users/xiaomanwang/doc_sys/pdf_test/schreyer2012.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/031002000211_42562221.pdf","/Users/xiaomanwang/doc_sys/pdf_test/031002000211_42562221.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1320530627.pdf","/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1320530627.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1323634139.pdf","/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1323634139.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/jm301323k.pdf","/Users/xiaomanwang/doc_sys/pdf_test/jm301323k.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/molecules-25-01375.pdf","/Users/xiaomanwang/doc_sys/pdf_test/molecules-25-01375.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/PCT320230224000003.pdf","/Users/xiaomanwang/doc_sys/pdf_test/PCT320230224000003.docx");
+        System.out.println(System.currentTimeMillis()-begin);
+        begin = System.currentTimeMillis();
+        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/RD-9404954-250619-1108-31.pdf","/Users/xiaomanwang/doc_sys/pdf_test/RD-9404954-250619-1108-31.docx");
+        System.out.println(System.currentTimeMillis()-begin);
     }
 }

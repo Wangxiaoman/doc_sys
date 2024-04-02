@@ -65,7 +65,7 @@ public class UserService extends ServiceImpl<UserMapper, UserBean> implements IU
             return null;
         }
         String subject = c.getSubject();
-        CommonLogger.info("解析结果：" + subject);
+        //CommonLogger.info("解析结果：" + subject);
         UserBean tokenUserBean = JSON.parseObject(subject, UserBean.class);
         UserBean user = userMapper.selectById(tokenUserBean.getUserId());
         if (user != null) {

@@ -45,9 +45,9 @@ public class AsyncThreadPoolAutoConfiguration implements AsyncConfigurer {
         //核心线程数
         taskExecutor.setCorePoolSize(Objects.nonNull(asyncThreadPoolProperties.getCorePoolSize()) ? asyncThreadPoolProperties.getCorePoolSize() : processors);
         //线程池最大线程数,默认：40000
-        taskExecutor.setMaxPoolSize(Objects.nonNull(asyncThreadPoolProperties.getMaxPoolSize()) ? asyncThreadPoolProperties.getMaxPoolSize() : 40000);
+        taskExecutor.setMaxPoolSize(Objects.nonNull(asyncThreadPoolProperties.getMaxPoolSize()) ? asyncThreadPoolProperties.getMaxPoolSize() : 200);
         //线程队列最大线程数,默认：80000
-        taskExecutor.setQueueCapacity(Objects.nonNull(asyncThreadPoolProperties.getMaxPoolSize()) ? asyncThreadPoolProperties.getMaxPoolSize() : 80000);
+        taskExecutor.setQueueCapacity(Objects.nonNull(asyncThreadPoolProperties.getMaxPoolSize()) ? asyncThreadPoolProperties.getMaxPoolSize() : 10000);
         //线程名称前缀
         taskExecutor.setThreadNamePrefix(StringUtils.isNotEmpty(asyncThreadPoolProperties.getThreadNamePrefix()) ? asyncThreadPoolProperties.getThreadNamePrefix() : "Async-ThreadPool-");
         //线程池中线程最大空闲时间，默认：60，单位：秒
@@ -67,7 +67,7 @@ public class AsyncThreadPoolAutoConfiguration implements AsyncConfigurer {
          */
         taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
         //初始化
-        //taskExecutor.initialize();
+        taskExecutor.initialize();
 
         return taskExecutor;
     }
