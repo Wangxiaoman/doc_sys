@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.multipdf.Splitter;
@@ -87,6 +88,8 @@ public class PdfConvertTextService {
                     for (int i = 0; i < fs.length; i++) {
                         PdfDocument sonpdf = new PdfDocument();
                         sonpdf.loadFromFile(fs[i].getAbsolutePath());
+                        Locale newLocale = Locale.ROOT;
+                        Locale.setDefault(newLocale);
                         String fname =
                                 docPath + fs[i].getName().substring(0, fs[i].getName().length() - 4)
                                         + ".docx";
@@ -222,38 +225,17 @@ public class PdfConvertTextService {
         for (int i = 1; i < fs.length; i++) {
             document.insertTextFromFile(docPath + TEMP_FILE_NAME + i + ".docx",
                     com.spire.doc.FileFormat.Docx_2013);
-            System.out.println("file path:" + docPath + ",merge file index:" + i);
+            CommonLogger.info("file path:" + docPath + ",merge file index:" + i);
         }
         // 第四步：对合并的doc进行保存2
         document.saveToFile(desPath);
-        System.out.println("file path:" + docPath + ",doc merge finish");
+        CommonLogger.info("file path:" + docPath + ",doc merge finish");
         return true;
     }
 
     public static void main(String[] args) {
         long begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/schreyer2012.pdf","/Users/xiaomanwang/doc_sys/pdf_test/schreyer2012.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/031002000211_42562221.pdf","/Users/xiaomanwang/doc_sys/pdf_test/031002000211_42562221.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1320530627.pdf","/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1320530627.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1323634139.pdf","/Users/xiaomanwang/doc_sys/pdf_test/Invoice_1323634139.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
         spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/jm301323k.pdf","/Users/xiaomanwang/doc_sys/pdf_test/jm301323k.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/molecules-25-01375.pdf","/Users/xiaomanwang/doc_sys/pdf_test/molecules-25-01375.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/PCT320230224000003.pdf","/Users/xiaomanwang/doc_sys/pdf_test/PCT320230224000003.docx");
-        System.out.println(System.currentTimeMillis()-begin);
-        begin = System.currentTimeMillis();
-        spirePdfToWord("/Users/xiaomanwang/doc_sys/pdf_test/RD-9404954-250619-1108-31.pdf","/Users/xiaomanwang/doc_sys/pdf_test/RD-9404954-250619-1108-31.docx");
         System.out.println(System.currentTimeMillis()-begin);
     }
 }
